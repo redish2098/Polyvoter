@@ -6,6 +6,12 @@ import nextcord
 
 settings_file = "settings.json"
 
+class Settings(enum.Enum):
+    CHANNEL = "channel"
+    VOTING = "voting"
+    SUBMITTING = "submitting"
+    ENABLED = "enabled"
+
 class Setting:
     def __init__(self, name : str, description : str, default : any, value_type : type):
         self.name = name
@@ -18,7 +24,8 @@ class Setting:
         if not os.path.isfile(settings_file):
             with open(settings_file, "w") as f:
                 f.write("{}")
-        settings = json.load(open(settings_file, "r"))
+        with open(settings_file, "r") as f:
+            settings = json.loads(f.read())
         return settings
 
     @staticmethod
@@ -36,16 +43,19 @@ class Setting:
             return settings[self.name]
 
     def set(self,  value : any):
+        if self.value_type == nextcord.TextChannel:
+            value = value.id
         settings = self.get_settings()
         settings[self.name] = value
         self.save_settings(settings)
 
-
+def get_setting(name : Settings) -> Setting:
+    return [s for s in settings if s.name == name.value][0]
 
 
 settings : list[Setting] = [
     Setting("channel", "set the channel for voting","", nextcord.TextChannel),
     Setting("voting", "enable users to vote on submissions",False, bool),
     Setting("submitting", "enable users to submit to the channel",False, bool),
-    Setting("enabled", "turn the bot on or off",False, bool)
+    Setting("enabled", "turn the bot on or off",True, bool)
 ]
