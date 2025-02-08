@@ -31,7 +31,6 @@ class Submissions(commands.Cog):
                         "You can only submit once per event, sending submission:"
                     )
                     await message.author.create_dm()
-                    await message.author.send(message.content)
                     await message.forward(message.author.dm_channel)
                     await message.delete()
                     break

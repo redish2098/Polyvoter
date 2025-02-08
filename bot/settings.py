@@ -4,13 +4,14 @@ import os.path
 
 import nextcord
 
-settings_file = "settings.json"
+settings_file = "bot/settings.json"
 
 class Settings(enum.Enum):
     CHANNEL = "channel"
     VOTING = "voting"
     SUBMITTING = "submitting"
     ENABLED = "enabled"
+    MOD_ROLE = "mod_role"
 
 class Setting:
     def __init__(self, name : str, description : str, default : any, value_type : type):
@@ -43,8 +44,9 @@ class Setting:
             return settings[self.name]
 
     def set(self,  value : any):
-        if self.value_type == nextcord.TextChannel:
+        if self.value_type in [nextcord.TextChannel,nextcord.Role]:
             value = value.id
+
         settings = self.get_settings()
         settings[self.name] = value
         self.save_settings(settings)
@@ -57,5 +59,6 @@ settings : list[Setting] = [
     Setting("channel", "set the channel for voting","", nextcord.TextChannel),
     Setting("voting", "enable users to vote on submissions",False, bool),
     Setting("submitting", "enable users to submit to the channel",False, bool),
-    Setting("enabled", "turn the bot on or off",True, bool)
+    Setting("enabled", "turn the bot on or off",True, bool),
+    Setting("mod_role", "give moderation permissions to specific role",None, nextcord.Role)
 ]

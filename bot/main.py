@@ -2,7 +2,8 @@ import dotenv
 import nextcord
 from nextcord.ext import commands
 import os
-from database import schema
+from bot.database import schema
+from bot import util
 
 
 intents = nextcord.Intents.all()
@@ -22,21 +23,41 @@ async def on_ready():
 async def on_application_command_error(interaction: nextcord.Interaction, error : Exception):
     print(f"Error: {error}")
     if isinstance(error, nextcord.errors.ApplicationCheckFailure):
-        await interaction.response.send_message("You don't have permission to use this command!", ephemeral=True)
+        embed = util.error_embed("You don't have permission to use this command!")
     else:
-        await interaction.response.send_message("An error occurred!", ephemeral=True)
+        embed = util.error_embed("An error occurred running this command")
+
+    if embed is not None:
+        if not interaction.response.is_done():
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+        else:
+            await interaction.edit_original_message(embed=embed)
 
     raise error
 
 
-
 schema.setup()
 
-bot.load_extension("cogs.config")
-bot.load_extension("cogs.moderation")
-bot.load_extension("cogs.submissions")
-bot.load_extension("cogs.voting")
-bot.load_extension("cogs.leaderboard")
+bot.load_extension("bot.cogs.config")
+bot.load_extension("bot.cogs.moderation")
+bot.load_extension("bot.cogs.submissions")
+bot.load_extension("bot.cogs.voting")
+bot.load_extension("bot.cogs.leaderboard")
+
+@bot.slash_command(name="help", description="Shows a list of available commands")
+async def help_command(interaction: nextcord.Interaction):
+    embed = nextcord.Embed(title="Available Commands", color=nextcord.Color.blue())
+    for cmd in bot.get_all_application_commands():
+        if any(
+                not(
+                        check.__name__ == util.has_permissions.__name__ and util.has_permissions(interaction)
+                )
+                for check in cmd.checks
+        ):
+            continue
+        embed.add_field(name=f"/{cmd.name}", value=cmd.description or "No description available.", inline=False)
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 
 bot.run(os.environ["DISCORD_TOKEN"])
