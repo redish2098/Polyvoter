@@ -13,7 +13,9 @@ class Voting(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, reaction_event: nextcord.RawReactionActionEvent):
-        if reaction_event.member.bot or not get_setting(Settings.ENABLED).get():
+        if (reaction_event.member.bot or
+                not get_setting(Settings.ENABLED).get() or
+                not reaction_event.channel_id == get_setting(Settings.CHANNEL).get()):
             return
 
         if not get_setting(Settings.VOTING).get():

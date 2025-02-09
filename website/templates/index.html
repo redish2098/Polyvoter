@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polytopia Contests</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        .navbar {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f4f4f4;
+        }
+
+        .navbar a {
+            font-weight: bold;
+            margin: 0 15px;
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .contest-container {
+            display: flex; /* Use flexbox to arrange submissions in a row */
+            flex-wrap: wrap; /* Allow wrapping if there are too many submissions */
+            justify-content: flex-start; /* Align items to the start of the container */
+            margin: 15px;
+            text-align: left;
+            padding: 10px;
+            position: relative;
+        }
+
+        .contest-title {
+            font-size: 20px; /* Contest name outside box */
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: bold;
+            text-align: left;
+            margin-left: 35px; /* Align the contest title to the left */
+        }
+
+        .submission {
+            width: 300px; /* Set a fixed width for each submission */
+            margin: 10px; /* Spacing between submissions */
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            box-sizing: border-box; /* Ensure padding and border are included in width */
+        }
+
+        .submission img {
+            width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        .submission-text {
+            margin: 10px 0;
+            flex-grow: 1; /* Allow this section to grow and take up available space */
+        }
+
+        .votes {
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <a href="/random_image" target="_blank">Random Image</a>
+</div>
+
+<h1>Polytopia Contests</h1>
+
+
+{% for contest in contests %}
+<div class="contest-title">{{ contest["contest_name"] }} ({{ contest["year"] }})</div>
+<div class="contest-container">
+    {% for submission in contest["submissions"] %}
+    <div class="submission">
+        {% if submission["image"] %}
+        <img id="submission_img"
+             src="submissions/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ submission['image'] }}"
+             alt="Submission Image">
+        {% endif %}
+
+        <div class="submission-text">
+            <p>{{ submission["text"] }}</p>
+        </div>
+        <div class="votes">
+            {% if submission["votes"] %}
+                {% set total_votes = submission["votes"] | length %}
+                    {% set sum_votes = submission["votes"] | sum %}
+                        <p>Score: {{ (sum_votes / total_votes) | round(2) if total_votes > 0 else 0 }}</p>
+                    {% else %}
+                <p>No votes yet</p>
+            {% endif %}
+        </div>
+
+    </div>
+    {% endfor %}
+</div>
+{% endfor %}
+
+
+</body>
+</html>

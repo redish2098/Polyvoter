@@ -34,6 +34,8 @@ def get_votes(n : int = 10) -> dict[int, tuple[float,int,int]]: # {submission_id
 
     return {x[0]:(x[1],x[2],x[3]) for x in valid_votes}
 
+def clear_votes():
+    schema.run_query("DELETE FROM votes WHERE TRUE")
 
 def set_vote(user_id : int, submission_id : int ,score: int) -> None:
     schema.run_query("DELETE FROM votes WHERE user_id = ? AND submission_id = ?", (user_id, submission_id))

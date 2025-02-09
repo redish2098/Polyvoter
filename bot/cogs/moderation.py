@@ -1,3 +1,5 @@
+from http.client import responses
+
 import nextcord
 from nextcord import SlashOption
 from nextcord.ext import commands, application_checks
@@ -30,10 +32,29 @@ class Moderation(commands.Cog):
         settings.get_setting(settings.Settings.VOTING).set(False)
         settings.get_setting(settings.Settings.SUBMITTING).set(False)
 
-        # recount leaderboard
+        count = 0
+        response_message = await interaction.response.send_message(embed=util.generic_embed(f"{count} submissions recounted","Recounting Votes",nextcord.Color.orange()), ephemeral=True)
+
+        contest_lifecycle.clear_votes()
+        channel = await self.bot.fetch_channel(settings.get_setting(settings.Settings.CHANNEL).get())
+        votes = {}
+        async for message in channel.history(limit=200):
+            if message.author.bot:
+                continue
+            votes[message.id] = {}
+            for reaction in message.reactions:
+                async for user in reaction.users():
+                    if user.bot:
+                        continue
+                    contest_lifecycle.set_vote(user.id, message.id, util.reaction_emojis[reaction.emoji])
+            count += 1
+            await response_message.edit(embed=util.generic_embed(f"{count} submissions recounted", "Recounting Votes", nextcord.Color.orange()))
+        await response_message.edit(embed=util.generic_embed(f"sum,avg and total for leaderboard is being recounted", "Recounting leaderboard", nextcord.Color.orange()))
+        await self.bot.leaderboard.count_leaderboard()
+
         # send to website
 
-        await interaction.response.send_message(embed=util.success_embed("Contest has been ended!"), ephemeral=True)
+        await response_message.edit(embed=util.success_embed("Contest has been ended!"))
 
     @moderation.subcommand(description="Start voting for a contest and end submissions")
     @application_checks.check(util.has_permissions)
@@ -42,7 +63,7 @@ class Moderation(commands.Cog):
         settings.get_setting(settings.Settings.SUBMITTING).set(False)
 
         checked = 0
-        response_message = await interaction.response.send_message(embed=util.success_embed(f"Starting Contest {checked} submission(s) checked","checking...",color=nextcord.Color.orange()), ephemeral=True)
+        response_message = await interaction.response.send_message(embed=util.generic_embed(f"Starting Contest {checked} submission(s) checked","checking...",color=nextcord.Color.orange()), ephemeral=True)
 
         channel = await self.bot.fetch_channel(settings.get_setting(settings.Settings.CHANNEL).get())
         async for message in channel.history(limit=200):
@@ -51,7 +72,7 @@ class Moderation(commands.Cog):
                     await message.add_reaction(e)
 
                 checked += 1
-                await response_message.edit(embed=util.success_embed(f"Starting Contest {checked} submission(s) checked","checking...",color=nextcord.Color.orange()))
+                await response_message.edit(embed=util.generic_embed(f"Starting Contest {checked} submission(s) checked","checking...",color=nextcord.Color.orange()))
 
         await response_message.edit(embed=util.success_embed("Contest has started voting period and submitting is now unallowed"))
 

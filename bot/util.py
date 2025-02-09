@@ -16,8 +16,11 @@ def has_permissions(interaction: nextcord.Interaction) -> bool:
         return True
     return False
 
-def success_embed(message: str, title : str = "Success!", color: nextcord.Color = nextcord.Color.green()) -> nextcord.Embed:
-    return nextcord.Embed(title=title, description=message, color=color)
+def success_embed(message: str) -> nextcord.Embed:
+    return nextcord.Embed(title= "Success!", description=message, color=nextcord.Color.green())
 
-def error_embed(message: str, title : str = "Error :(", color: nextcord.Color = nextcord.Color.red()) -> nextcord.Embed:
+def error_embed(message: str) -> nextcord.Embed:
+    return nextcord.Embed(title="Error :(", description=message, color=nextcord.Color.red())
+
+def generic_embed(message: str, title : str, color: nextcord.Color) -> nextcord.Embed:
     return nextcord.Embed(title=title, description=message, color=color)

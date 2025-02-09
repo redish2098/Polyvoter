@@ -17,17 +17,14 @@ class Leaderboard(commands.Cog):
     def hash_leaderboard(leaderboard : dict[int,tuple[float,int,int]]):
         return hashlib.md5(json.dumps(leaderboard).encode()).digest()
 
-    @nextcord.slash_command(description="Creates a leaderboard of top 10 submissions")
-    async def leaderboard(self, interaction : nextcord.Interaction):
+    async def count_leaderboard(self) -> nextcord.Embed:
         votes = contest_lifecycle.get_votes(10)
         embed = nextcord.Embed(
             title="Leaderboard",
-            description="Leaderboard of 10 contests",
+            description="Leaderboard of top 10 submissions",
         )
-
         new_hash = self.hash_leaderboard(votes)
         if self.leaderboard_hash != new_hash or self.leaderboard is None:
-
             pos = 1
             for i, (k, v) in enumerate(votes.items()):
                 channel = await self.bot.fetch_channel(get_setting(Settings.CHANNEL).get())
@@ -37,17 +34,19 @@ class Leaderboard(commands.Cog):
                     value=f"Average: {v[0]}\nTotal: {v[1]}\nVotes: {v[2]}\n[Jump to submission]({message.jump_url})",
                     inline=False,
                 )
-
                 pos += 1
-
             self.leaderboard = embed
             self.leaderboard_hash = new_hash
         else:
             embed = self.leaderboard
+        return embed
 
-
+    @nextcord.slash_command(description="Creates a leaderboard of top 10 submissions")
+    async def leaderboard(self, interaction : nextcord.Interaction):
+        embed = await self.count_leaderboard()
         await interaction.response.send_message(embed=embed)
 
 
 def setup(bot):
-    bot.add_cog(Leaderboard(bot))
+    bot.leaderboard = Leaderboard(bot)
+    bot.add_cog(bot.leaderboard)
