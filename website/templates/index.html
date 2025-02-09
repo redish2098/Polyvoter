@@ -24,42 +24,46 @@
         }
 
         .contest-container {
-            display: flex; /* Use flexbox to arrange submissions in a row */
-            flex-wrap: wrap; /* Allow wrapping if there are too many submissions */
-            justify-content: flex-start; /* Align items to the start of the container */
-            margin: 15px;
-            text-align: left;
-            padding: 10px;
-            position: relative;
-        }
+    display: flex;  /* Use flexbox to control spacing */
+    flex-wrap: wrap; /* Allow wrapping to new rows */
+    justify-content: flex-start; /* Align items to the left */
+    gap: 20px; /* Fixed horizontal spacing */
+    margin: 15px;
+    text-align: left;
+    padding: 10px;
+}
 
         .contest-title {
-            font-size: 20px; /* Contest name outside box */
+            font-size: 20px;
             margin-bottom: 10px;
             color: #333;
             font-weight: bold;
             text-align: left;
-            margin-left: 35px; /* Align the contest title to the left */
+            margin-left: 35px;
         }
 
+
         .submission {
-            width: 300px; /* Set a fixed width for each submission */
-            margin: 10px; /* Spacing between submissions */
+            width: 500px;
+            flex-shrink: 0;
+            margin-bottom: 20px;
             padding: 10px;
-            border: 1px solid #ddd;
+            border: 2px solid #ddd;
             background-color: #f9f9f9;
-            box-sizing: border-box; /* Ensure padding and border are included in width */
+            box-sizing: border-box;
+            border-radius: 5px;
         }
 
         .submission img {
             width: 100%;
             height: auto;
             margin-bottom: 10px;
+            loading: lazy;
         }
 
         .submission-text {
             margin: 10px 0;
-            flex-grow: 1; /* Allow this section to grow and take up available space */
+            flex-grow: 1;
         }
 
         .votes {
@@ -71,41 +75,31 @@
 <body>
 
 <div class="navbar">
-    <a href="/random_image" target="_blank">Random Image</a>
+    <a href="/">Home</a>
+    <a href="/random_submission">Random Submission</a>
 </div>
 
 <h1>Polytopia Contests</h1>
-
 
 {% for contest in contests %}
 <div class="contest-title">{{ contest["contest_name"] }} ({{ contest["year"] }})</div>
 <div class="contest-container">
     {% for submission in contest["submissions"] %}
-    <div class="submission">
-        {% if submission["image"] %}
-        <img id="submission_img"
-             src="submissions/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ submission['image'] }}"
+    <a href="/submission/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ loop.index0 }}" class="submission">
+        {% if submission["files"] %}
+        <img src="/submissions/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ submission['files'][0] }}"
              alt="Submission Image">
         {% endif %}
-
         <div class="submission-text">
             <p>{{ submission["text"] }}</p>
         </div>
         <div class="votes">
-            {% if submission["votes"] %}
-                {% set total_votes = submission["votes"] | length %}
-                    {% set sum_votes = submission["votes"] | sum %}
-                        <p>Score: {{ (sum_votes / total_votes) | round(2) if total_votes > 0 else 0 }}</p>
-                    {% else %}
-                <p>No votes yet</p>
-            {% endif %}
+            <p>Score: {{ submission['avg'] }}</p>
         </div>
-
-    </div>
+    </a>
     {% endfor %}
 </div>
 {% endfor %}
-
 
 </body>
 </html>

@@ -6,6 +6,7 @@ from nextcord.ext import commands, application_checks
 from bot import util, settings
 from bot.database import contest_lifecycle
 from typing import Optional
+from contests import contests
 
 class Moderation(commands.Cog):
     def __init__(self, bot):
@@ -28,7 +29,7 @@ class Moderation(commands.Cog):
 
     @moderation.subcommand(description="End a contest")
     @application_checks.check(util.has_permissions)
-    async def end_contest(self, interaction: nextcord.Interaction):
+    async def end_contest(self, interaction: nextcord.Interaction, save_to_website : bool = True):
         settings.get_setting(settings.Settings.VOTING).set(False)
         settings.get_setting(settings.Settings.SUBMITTING).set(False)
 
@@ -38,6 +39,7 @@ class Moderation(commands.Cog):
         contest_lifecycle.clear_votes()
         channel = await self.bot.fetch_channel(settings.get_setting(settings.Settings.CHANNEL).get())
         votes = {}
+        submissions = {} # {submission_id : {"attachments":[],"text":""}}
         async for message in channel.history(limit=200):
             if message.author.bot:
                 continue
@@ -47,12 +49,34 @@ class Moderation(commands.Cog):
                     if user.bot:
                         continue
                     contest_lifecycle.set_vote(user.id, message.id, util.reaction_emojis[reaction.emoji])
+
+            submissions[message.id] = {}
+            submissions[message.id]["attachments"] = message.attachments
+            submissions[message.id]["text"] = message.content
+
+
             count += 1
             await response_message.edit(embed=util.generic_embed(f"{count} submissions recounted", "Recounting Votes", nextcord.Color.orange()))
         await response_message.edit(embed=util.generic_embed(f"sum,avg and total for leaderboard is being recounted", "Recounting leaderboard", nextcord.Color.orange()))
         await self.bot.leaderboard.count_leaderboard()
 
-        # send to website
+        if save_to_website:
+            await response_message.edit(
+                embed=util.generic_embed(f"sending all submissions to website", "Updating website",nextcord.Color.orange()))
+            # send to website
+            votes = contest_lifecycle.get_votes()
+            for vote in votes:
+                if vote not in submissions:
+                    continue
+                submissions[vote]["avg"] = votes[vote][0]
+                submissions[vote]["sum"] = votes[vote][1]
+                submissions[vote]["count"] = votes[vote][2]
+            for submission in submissions:
+                if "count" not in submissions[submission]:
+                    submissions[submission]["avg"] = 0
+                    submissions[submission]["sum"] = 0
+                    submissions[submission]["count"] = 0
+            await contests.save_contest(channel.name, submissions)
 
         await response_message.edit(embed=util.success_embed("Contest has been ended!"))
 

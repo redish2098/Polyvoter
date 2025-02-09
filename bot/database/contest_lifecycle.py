@@ -1,3 +1,5 @@
+from numpy.ma.core import count
+
 from bot.database import schema
 from bot import settings
 import numpy as np
@@ -5,7 +7,7 @@ import numpy as np
 def new_contest():
     schema.run_query("DELETE FROM votes WHERE TRUE")
 
-def get_votes(n : int = 10) -> dict[int, tuple[float,int,int]]: # {submission_id:(avg,sum,count)}
+def get_votes(n : int = None) -> dict[int, tuple[float,int,int]]: # {submission_id:(avg,sum,count)}
     user_averages = schema.run_query("SELECT user_id, AVG(rating) as avg_rating FROM votes GROUP BY user_id")
 
     avg_ratings = np.array([row[1] for row in user_averages])
@@ -26,13 +28,14 @@ def get_votes(n : int = 10) -> dict[int, tuple[float,int,int]]: # {submission_id
             WHERE user_id IN ({placeholders}) 
             GROUP BY submission_id
             ORDER BY avg_votes DESC
-            Limit {n}
         """
+        if n is not None:
+            query += f" LIMIT {n}"
         valid_votes = schema.run_query(query, tuple(valid_users))
     else:
         valid_votes = []
 
-    return {x[0]:(x[1],x[2],x[3]) for x in valid_votes}
+    return {int(x[0]):(x[1],x[2],x[3]) for x in valid_votes}
 
 def clear_votes():
     schema.run_query("DELETE FROM votes WHERE TRUE")
