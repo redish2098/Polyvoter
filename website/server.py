@@ -74,6 +74,7 @@ def submission_page(year, contest_id, submission_num):
                            avg=submission.get("avg", "N/A"),
                            sum=submission.get("sum", "N/A"),
                            count=submission.get("count", "N/A"),
+                           author=submission.get("author", ""),
                            )
 
 @app.route("/random_submission")
@@ -99,6 +100,11 @@ def random_image():
         year=random_submission[0],
         contest_id=random_submission[1],
         submission_num=random_submission[2]))
+
+@app.route("/website/styles/<style>")
+def website_styles(style):
+    print(os.path.abspath("website/templates/styles"))
+    return send_from_directory(os.path.abspath("website/templates/styles"), style)
 
 
 if __name__ == "__main__":

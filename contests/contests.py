@@ -6,7 +6,7 @@ import nanoid
 
 SUBMISSIONS_DIR = "contests/submissions"
 
-async def save_contest(name:str, submissions : dict[int:dict[nextcord.Attachment,str,float,int,int]]): # {submission_id:{"attachments":[],"text":"","avg":0,"sum":0,"count":0}}
+async def save_contest(name:str, submissions : dict[int:dict[nextcord.Attachment,str,str,float,int,int]]): # {submission_id:{"attachments":[],"text":"","avg":0,"sum":0,"count":0}}
     contest_info = {'contest name': name, 'submissions': []}
     year = datetime.now().year
 
@@ -22,6 +22,7 @@ async def save_contest(name:str, submissions : dict[int:dict[nextcord.Attachment
 
     for submission in submissions.values():
         submission_r = {
+            "author": submission["author"],
             "text": submission["text"],
             "avg": submission["avg"],
             "sum": submission["sum"],

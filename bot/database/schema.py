@@ -5,7 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-db_file = os.path.join("bot\\data.db")
+db_file = os.path.join("bot","data.db")
 
 votes_table = """
 CREATE TABLE IF NOT EXISTS votes (

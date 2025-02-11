@@ -1,105 +1,46 @@
 <!DOCTYPE html>
+
+
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Polytopia Contests</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-
-        .navbar {
-            margin-bottom: 20px;
-            padding: 10px;
-            background-color: #f4f4f4;
-        }
-
-        .navbar a {
-            font-weight: bold;
-            margin: 0 15px;
-            text-decoration: none;
-            color: #007bff;
-        }
-
-        .contest-container {
-    display: flex;  /* Use flexbox to control spacing */
-    flex-wrap: wrap; /* Allow wrapping to new rows */
-    justify-content: flex-start; /* Align items to the left */
-    gap: 20px; /* Fixed horizontal spacing */
-    margin: 15px;
-    text-align: left;
-    padding: 10px;
-}
-
-        .contest-title {
-            font-size: 20px;
-            margin-bottom: 10px;
-            color: #333;
-            font-weight: bold;
-            text-align: left;
-            margin-left: 35px;
-        }
-
-
-        .submission {
-            width: 500px;
-            flex-shrink: 0;
-            margin-bottom: 20px;
-            padding: 10px;
-            border: 2px solid #ddd;
-            background-color: #f9f9f9;
-            box-sizing: border-box;
-            border-radius: 5px;
-        }
-
-        .submission img {
-            width: 100%;
-            height: auto;
-            margin-bottom: 10px;
-            loading: lazy;
-        }
-
-        .submission-text {
-            margin: 10px 0;
-            flex-grow: 1;
-        }
-
-        .votes {
-            font-size: 14px;
-            color: #666;
-        }
-    </style>
-</head>
+    <link rel="stylesheet" href="website/styles/style.css">  </head>
 <body>
 
-<div class="navbar">
-    <a href="/">Home</a>
+<nav class="navbar">
+    <a href="/">All Contests</a>
     <a href="/random_submission">Random Submission</a>
-</div>
+</nav>
 
-<h1>Polytopia Contests</h1>
+<main>  <h1>Polytopia Contests</h1>
 
-{% for contest in contests %}
-<div class="contest-title">{{ contest["contest_name"] }} ({{ contest["year"] }})</div>
-<div class="contest-container">
-    {% for submission in contest["submissions"] %}
-    <a href="/submission/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ loop.index0 }}" class="submission">
-        {% if submission["files"] %}
-        <img src="/submissions/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ submission['files'][0] }}"
-             alt="Submission Image">
-        {% endif %}
-        <div class="submission-text">
-            <p>{{ submission["text"] }}</p>
+    {% for contest in contests %}
+    <section class="contest">  <h2 class="contest-title">{{ contest["contest_name"] }} ({{ contest["year"] }})</h2>
+        <div class="contest-container">
+            {% for submission in contest["submissions"] %}
+            <a href="/submission/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ loop.index0 }}" class="submission-link" >
+                <article class="submission">  {% if submission["files"] %}
+                    <img src="/submissions/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ submission['files'][0] }}"
+                         alt="{{ submission['alt_text'] or 'Polytopia Submission' }}" loading="lazy"> {% endif %}
+
+                    <div class="submission-content">  <p>{{ submission["text"] }}</p>
+                        <div class="submission-meta">
+                            <span class="votes">Score: {{ submission['avg'] }}</span>
+                            {% if submission["author"] %}
+                            <span class="author">by {{ submission["author"] }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </article>
+            </a>
+            {% endfor %}
         </div>
-        <div class="votes">
-            <p>Score: {{ submission['avg'] }}</p>
-        </div>
-    </a>
+    </section>
     {% endfor %}
-</div>
-{% endfor %}
+</main>
 
 </body>
 </html>

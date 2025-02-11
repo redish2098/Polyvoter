@@ -1,10 +1,10 @@
 import nextcord
 from nextcord.ext import commands
 from bot.database import contest_lifecycle
-import itertools
 from bot.settings import get_setting,Settings
 import hashlib
 import json
+from bot import util
 
 
 class Leaderboard(commands.Cog):
@@ -43,8 +43,9 @@ class Leaderboard(commands.Cog):
 
     @nextcord.slash_command(description="Creates a leaderboard of top 10 submissions")
     async def leaderboard(self, interaction : nextcord.Interaction):
+        response = await interaction.send(embed=util.generic_embed("Calculating......","Calculating...",nextcord.Colour.orange()),ephemeral=True)
         embed = await self.count_leaderboard()
-        await interaction.response.send_message(embed=embed)
+        await response.edit(embed=embed)
 
 
 def setup(bot):

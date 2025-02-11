@@ -4,75 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Submission</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 20px;
-        }
-
-        .navbar {
-            margin-bottom: 20px;
-            padding: 10px;
-            background-color: #f4f4f4;
-        }
-
-        .navbar a {
-            font-weight: bold;
-            margin: 0 15px;
-            text-decoration: none;
-            color: #007bff;
-        }
-
-        .submission-container {
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            background-color: #f9f9f9;
-        }
-
-        .submission img {
-            width: 100%;  /* Let the image keep its intrinsic width */
-            max-width: 100%;  /* Ensure it doesn't overflow the container */
-            height: auto;  /* Keep the aspect ratio */
-            object-fit: contain;
-        }
-
-
-        .submission-text {
-            margin: 10px 0;
-        }
-
-        .votes {
-            font-size: 14px;
-            color: #666;
-        }
-    </style>
-</head>
+    <link rel="stylesheet" href="/website/styles/style.css"> </head>
 <body>
 
-<div class="navbar">
-    <a href="/">Home</a>
+<nav class="navbar">
+    <a href="/">All Contests</a>
     <a href="/random_submission">Random Submission</a>
-</div>
+</nav>
 
-<div class="submission-container">
-    {% if files %}
-        <img src="/submissions/{{ year }}/{{ contest_id }}/{{ files[0] }}" alt="Submission Image">
-    {% endif %}
-    <div class="submission-text">
-        <p>{{ text }}</p>
-    </div>
-    <div class="votes">
-        <p>Score: {{ avg }}</p>
-    </div>
-    <div class="votes">
-        <p>Total: {{ sum }}</p>
-    </div>
-    <div class="votes">
-        <p>Count: {{ count }}</p>
-    </div>
-</div>
+<main>
+    <section class="submission-view">
+        <div class="submission-container">
+            {% if files %}
+            <img src="/submissions/{{ year }}/{{ contest_id }}/{{ files[0] }}" alt="{{ alt_text or 'Polytopia Submission' }}" loading="lazy">
+            {% endif %}
+            <div class="submission-content">
+                <p>{{ text }}</p>
+                <div class="submission-meta">
+                    <span class="votes">Score: {{ avg }}</span>
+                    <span class="votes">Total: {{ sum }}</span>
+                    <span class="votes">Count: {{ count }}</span>
+                    {% if author %}
+                    <span class="author">by {{ author }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
 
 </body>
 </html>

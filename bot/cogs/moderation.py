@@ -41,6 +41,9 @@ class Moderation(commands.Cog):
         votes = {}
         submissions = {} # {submission_id : {"attachments":[],"text":""}}
         async for message in channel.history(limit=200):
+            if count != 0:
+                await response_message.edit(
+                    embed=util.generic_embed(f"{count} submissions recounted", "Recounting Votes", nextcord.Color.orange()))
             if message.author.bot:
                 continue
             votes[message.id] = {}
@@ -53,17 +56,15 @@ class Moderation(commands.Cog):
             submissions[message.id] = {}
             submissions[message.id]["attachments"] = message.attachments
             submissions[message.id]["text"] = message.content
-
-
+            submissions[message.id]["author"] = message.author.name
             count += 1
-            await response_message.edit(embed=util.generic_embed(f"{count} submissions recounted", "Recounting Votes", nextcord.Color.orange()))
+
         await response_message.edit(embed=util.generic_embed(f"sum,avg and total for leaderboard is being recounted", "Recounting leaderboard", nextcord.Color.orange()))
         await self.bot.leaderboard.count_leaderboard()
 
         if save_to_website:
             await response_message.edit(
                 embed=util.generic_embed(f"sending all submissions to website", "Updating website",nextcord.Color.orange()))
-            # send to website
             votes = contest_lifecycle.get_votes()
             for vote in votes:
                 if vote not in submissions:
