@@ -18,7 +18,8 @@
 <main>  <h1>Polytopia Contests</h1>
 
     {% for contest in contests %}
-    <section class="contest">  <h2 class="contest-title">{{ contest["contest_name"] }} ({{ contest["year"] }})</h2>
+    <section class="contest">
+        <h2 class="contest-title">{{ contest["contest_name"] }} ({{ contest["year"] }})</h2>
         <div class="contest-container">
             {% for submission in contest["submissions"] %}
             <a href="/submission/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ loop.index0 }}" class="submission-link" >
