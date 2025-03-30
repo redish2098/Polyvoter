@@ -41,7 +41,7 @@
             {% endif %}
         {% endif %}
         <div class="submission-content">
-            <p>{{ text | safe }}</p>
+            <p>{{ text|md|safe }}</p>
             <div class="submission-meta">
                 <span class="votes">Score: {{ avg | round(2) }} </span>
                 <span class="votes">Total: {{ sum }}</span>

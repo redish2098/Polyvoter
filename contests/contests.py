@@ -1,14 +1,90 @@
 import datetime
 import json
 import os
-from datetime import datetime
+from pathlib import Path
+import time
 import nextcord
 import nanoid
+from pydantic import BaseModel, Field
+import dataclasses
+from contests import file_formatting
 
-SUBMISSIONS_DIR = os.path.abspath("contests/submissions")
+SUBMISSIONS_DIR = Path("contests/submissions").resolve()
+LAST_UPDATED_FILE = SUBMISSIONS_DIR / "last_updated"
 
-async def save_contest(name:str, submissions : dict[int:dict[nextcord.Attachment,str,str,float,int,int]]): # {submission_id:{"attachments":[],"text":"","avg":0,"sum":0,"count":0}}
-    contest_info = {'contest name': name, 'submissions': [], 'date':datetime.now().date().isoformat()}
+
+class Submission(BaseModel):
+    author: str
+    text: str
+    avg: float
+    sum: int
+    count: int
+    files: list[str]
+
+
+class InfoFile(BaseModel):
+    name: str = Field(alias="contest name")
+    submissions: list[Submission]
+    date: datetime.date
+
+
+@dataclasses.dataclass
+class Contest:
+    contest_id: str
+    name: str
+    year: str
+    date: datetime.date
+    submissions: list[Submission]
+
+    @property
+    def month(self) -> str:
+        return self.date.strftime("%B")
+
+    def link(self, file: str) -> str:
+        path = SUBMISSIONS_DIR / self.year / self.contest_id / file
+        webp = path.with_suffix(".webp")
+
+        if webp.is_file():
+            return f"/submissions/{self.year}/{self.contest_id}/{webp.name}"
+        return f"/submissions/{self.year}/{self.contest_id}/{file}"
+
+
+class InMemoryCache:
+    def __init__(self):
+        self._contests = []
+        self.load_from_disk()
+        self.mtime = time.time()
+
+    def load_from_disk(self):
+        self._contests = []
+
+        for file in SUBMISSIONS_DIR.rglob("info.json"):
+            file: Path = file.resolve()
+            print(f"Loading contest info from {file}")
+            json_string = file.read_text()
+            info = InfoFile.model_validate_json(json_string)
+
+            self._contests.append(Contest(
+                contest_id=file.parent.name,
+                name=info.name,
+                year=file.parent.parent.name,
+                date=info.date,
+                submissions=info.submissions,
+            ))
+
+        self._contests.sort(key=lambda c: c.date, reverse=True)
+
+    @property
+    def contests(self):
+        if LAST_UPDATED_FILE.stat().st_mtime > self.mtime:
+            self.load_from_disk()
+            self.mtime = time.time()
+
+        return self._contests
+
+
+async def save_contest(name: str, submissions: dict[int, dict[nextcord.Attachment, str, str, float, int, int]]): # {submission_id:{"attachments":[],"text":"","avg":0,"sum":0,"count":0}}
+    contest_info = {'name': name, 'submissions': [], 'date':datetime.now().date().isoformat()}
     year = datetime.now().year
 
     save_dir = f"{SUBMISSIONS_DIR}/{year}/{nanoid.generate(size=7)}"
@@ -33,9 +109,10 @@ async def save_contest(name:str, submissions : dict[int:dict[nextcord.Attachment
 
 
         for i,attachment in enumerate(submission["attachments"]):
-            filename =  f"file_{i}_{attachment.filename}"
-            await attachment.save(os.path.join(save_dir,filename))
-            submission_r["files"].append(filename)
+            filepath = Path(save_dir) / f"file_{i}_{attachment.filename}"
+            await attachment.save(filepath)
+            file_formatting.format_file(filepath)
+            submission_r["files"].append(filepath.name)
 
         contest_info['submissions'].append(submission_r)
 
@@ -43,30 +120,6 @@ async def save_contest(name:str, submissions : dict[int:dict[nextcord.Attachment
     with open(f"{save_dir}/info.json", "w") as info_file:
         info_file.write(json.dumps(contest_info, indent=4))
 
-def get_all_contests():
-    contests = []
-    # Scan the submissions folder to find years and contests
-    for year in os.listdir(SUBMISSIONS_DIR):
-        year_path = os.path.join(SUBMISSIONS_DIR, year)
-        if os.path.isdir(year_path):
-            for contest_id in os.listdir(year_path):
-                contest_path = os.path.join(year_path, contest_id)
-                info_file = os.path.join(contest_path, "info.json")
-
-                if os.path.exists(info_file):
-                    try:
-                        with open(info_file, "r", encoding="utf-8") as f:
-                            contest_data = json.load(f)
-                        contests.append({
-                            "year": year,
-                            "contest_id": contest_id,
-                            "contest_name": contest_data.get("contest name", "Unknown Contest"),
-                            "submissions": contest_data.get("submissions", []),
-                            "date": contest_data.get("date", datetime.min.date().isoformat())
-                        })
-                    except (json.JSONDecodeError, KeyError) as e:
-                        print(f"Error reading {info_file}: {e}")
-
-    contests.sort(key=lambda x: x["date"],reverse=True)
-
-    return contests
+        if not Path(LAST_UPDATED_FILE).exists():
+            with open(LAST_UPDATED_FILE,"w"): pass
+        Path(LAST_UPDATED_FILE).touch()

@@ -2,19 +2,17 @@ import random
 from flask import Flask, render_template, send_from_directory, redirect, url_for
 import os
 import json
-import text_formatting
 from contests import contests
+from website import text_formatting
+
+CACHE = contests.InMemoryCache()
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
+app.jinja_env.filters["md"] = text_formatting.parse
 
 @app.route("/")
 def home():
-    all_contests = contests.get_all_contests()
-    print(all_contests)
-    for contest in range(len(all_contests)):
-        for j in range(len(all_contests[contest]["submissions"])):
-            all_contests[contest]["submissions"][j]["text"] = text_formatting.parse(all_contests[contest]["submissions"][j]["text"])
-    return render_template("index.html", contests=all_contests)
+    return render_template("index.html", contests=CACHE.contests)
 
 
 @app.route("/submissions/<int:year>/<contest_id>/<filename>")
@@ -48,7 +46,7 @@ def submission_page(year, contest_id, submission_num):
     return render_template("submission.html",
                            year=year,
                            contest_id=contest_id,
-                           text=text_formatting.parse(submission.get("text", "")),
+                           text=submission.get("text", ""),
                            files=submission.get("files", []),
                            avg=submission.get("avg", "N/A"),
                            sum=submission.get("sum", "N/A"),

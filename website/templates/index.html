@@ -1,61 +1,60 @@
 <!DOCTYPE html>
 
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Polytopia Contests</title>
-    <link rel="stylesheet" href="website/styles/style.css">  </head>
-<body>
-
-<nav class="navbar">
-    <a href="/">All Contests</a>
-    <a href="/random_submission">Random Submission</a>
-</nav>
-
-<main>  <h1>Polytopia Contests</h1>
-    {% for contest in contests %}
-    <section class="contest">
-        <h2 class="contest-title">{{ contest["contest_name"] }} ({{ contest["year"] }})</h2>
-        <div class="contest-container">
-            {% for submission in contest["submissions"] %}
-            <article class="submission-container">
-                <a href="/submission/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ loop.index0 }}" class="submission-link" >
-                    <article class="submission">
-                        {% if submission["files"] %}
-                            {% set file = submission["files"][0] %}
-                            {% if file.endswith('.jpg') or file.endswith('.jpeg') or file.endswith('.png') or file.endswith('.gif') %}
-                                <img src= "/submissions/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ file }}"
-                                     alt="{{ submission['alt_text'] or 'Polytopia Submission' }}" loading="lazy">
-                            {% elif file.endswith('.mp4') or file.endswith('.webm')  or file.endswith('.mov')%}
-                                <video controls src="/submissions/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ file }}" loading="lazy"></video>
-                            {% elif file.endswith('.mp3') or file.endswith('.wav') %}
-                                <audio controls>
-                                    <source src="/submissions/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ file }}" type="audio/mpeg" loading="lazy">
-                                    Your browser does not support the audio element.
-                                </audio>
-                            {% else %}
-                                <a href="/submissions/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ file }}" target="_blank" loading="lazy">
-                                    View File
-                                </a>
-                            {% endif %}
-                        {% endif %}
-                        <div class="submission-content">  <p>{{  submission["text"]  | safe }}</p>
-                            <div class="submission-meta">
-                                <span class="votes">Score: {{ submission['avg'] |round(2) }}</span>
-                                {% if submission["author"] %}
-                                <span class="author">by {{ submission["author"] }}</span>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Polytopia Contests</title>
+        <link rel="stylesheet" href="website/styles/style.css">
+    </head>
+    <body>
+        <nav class="navbar">
+            <a href="/">All Contests</a>
+            <a href="/random_submission">Random Submission</a>
+        </nav>
+        <main>
+            <h1>Polytopia Contests</h1>
+            {% for contest in contests %}
+            <section class="contest">
+                <h2 class="contest-title">{{ contest.name }} ({{ contest.month }}-{{ contest.year }})</h2>
+                <div class="contest-container">
+                    {% for submission in contest.submissions %}
+                    <article class="submission-container">
+                        <a href="/submission/{{ contest.year }}/{{ contest.contest_id }}/{{ loop.index0 }}" class="submission-link" >
+                            <article class="submission">
+                                {% if submission.files %}
+                                    {% set file = contest.link(submission.files[0]) %}
+                                    {% if file.endswith('.jpg') or file.endswith('.jpeg') or file.endswith('.png') or file.endswith('.gif') or file.endswith(".webp") %}
+                                        <img src= "{{ file }}"
+                                             alt="{{ submission['alt_text'] or 'Polytopia Submission' }}" loading="lazy">
+                                    {% elif file.endswith('.mp4') or file.endswith('.webm')  or file.endswith('.mov')%}
+                                        <video controls src="{{ file }}" preload="metadata"></video>
+                                    {% elif file.endswith('.mp3') or file.endswith('.wav') %}
+                                        <audio controls preload="metadata">
+                                            <source src="{{ file }}" type="audio/mpeg">
+                                            Your browser does not support the audio element.
+                                        </audio>
+                                    {% else %}
+                                        <a href="{{ file }}" target="_blank">
+                                            View File
+                                        </a>
+                                    {% endif %}
                                 {% endif %}
-                            </div>
-                        </div>
+                                <div class="submission-content">  <p>{{  submission.text|md|safe }}</p>
+                                    <div class="submission-meta">
+                                        <span class="votes">Score: {{ submission.avg|round(2) }}</span>
+                                        {% if submission.author %}
+                                            <span class="author">by {{ submission.author }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </article>
+                        </a>
                     </article>
-                </a>
-            </article>
+                    {% endfor %}
+                </div>
+            </section>
             {% endfor %}
-        </div>
-    </section>
-    {% endfor %}
-</main>
-
-</body>
+        </main>
+    </body>
 </html>

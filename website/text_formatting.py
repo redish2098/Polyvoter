@@ -1,6 +1,5 @@
 import re
-import bleach
-from markupsafe import Markup
+from mistune import create_markdown
 
 ALLOWED_TAGS = [
     "strong", "em", "u", "del", "code", "iframe", "br"
@@ -11,21 +10,20 @@ ALLOWED_ATTRIBUTES = {
 }
 
 def parse(text):
-    text = parse_discord_markup(text)
-    text = embed_youtube_links(text)
-    return sanitize_html(text)
+    markdown = create_markdown(plugins=["strikethrough"])
+    return embed_youtube_links(markdown(text))
 
-def sanitize_html(text):
-    cleaned = bleach.clean(text, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES)
-    return Markup(cleaned)
-
-def parse_discord_markup(text):
+def render_discord_markup(text):
     rules = [
-        (r"__(.*?)__", r"<u>\1</u>"),  # underline
-        (r"\*\*(.*?)\*\*", r"<strong>\1</strong>"),  # bold
-        (r"\*(.*?)\*", r"<em>\1</em>"),  # italic
-        (r"~~(.*?)~~", r"<del>\1</del>"),  # strikethrough
-        (r"`(.*?)`", r"<code>\1</code>"),  # inline code
+        (r"(\*(.*?)\*)|(_(.*?)_)", r'<span class="italic">\1</span>'),  # italic
+        (r"\*\*(.*?)\*\*", r'<span class="bold">\1</span>'),  # bold
+        (r"\*\*\*(.*?)\*\*\*", r'<span class="bold italic">\1</span>'), # bold italics
+        (r"__(.*?)__", r'<span class="underline">\1</span>'),  # underline
+        (r"__\*(.*?)\*__", r'<span class="underline italic">\1</span>'),  # underline italics
+        (r"__\*\*\*(.*?)\*\*\*__", r'<span class="underline bold italic">\1</span>'),  # underline bold italics
+        (r"~~(.*?)~~", r'<span class="strikethrough">\1</span>'),  # strikethrough
+        (r"~~(.*?)~~", r'<span class="strikethrough">\1</span>'),  # strikethrough
+        (r"`(.*?)`", r'<code>\1</code>'),  # inline code
     ]
 
     for pattern, replacement in rules:
