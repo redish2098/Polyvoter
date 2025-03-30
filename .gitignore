@@ -1,5 +1,5 @@
 settings.json
 .env
 data.db
-*/__pycache__/
+__pycache__/
 contests/submissions/*

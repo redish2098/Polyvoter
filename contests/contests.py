@@ -31,6 +31,7 @@ async def save_contest(name:str, submissions : dict[int:dict[nextcord.Attachment
             "files": []
         }
 
+
         for i,attachment in enumerate(submission["attachments"]):
             filename =  f"file_{i}_{attachment.filename}"
             await attachment.save(os.path.join(save_dir,filename))

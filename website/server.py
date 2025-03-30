@@ -2,6 +2,7 @@ import random
 from flask import Flask, render_template, send_from_directory, redirect, url_for
 import os
 import json
+import text_formatting
 from contests import contests
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
@@ -9,6 +10,10 @@ app = Flask(__name__, static_folder="static", template_folder="templates")
 @app.route("/")
 def home():
     all_contests = contests.get_all_contests()
+    print(all_contests)
+    for contest in range(len(all_contests)):
+        for j in range(len(all_contests[contest]["submissions"])):
+            all_contests[contest]["submissions"][j]["text"] = text_formatting.parse(all_contests[contest]["submissions"][j]["text"])
     return render_template("index.html", contests=all_contests)
 
 
@@ -21,7 +26,6 @@ def serve_image(year, contest_id, filename):
         return "File not found", 404
 
     return send_from_directory(contest_path, filename)
-
 
 @app.route("/submission/<int:year>/<contest_id>/<submission_num>")
 def submission_page(year, contest_id, submission_num):
@@ -44,7 +48,7 @@ def submission_page(year, contest_id, submission_num):
     return render_template("submission.html",
                            year=year,
                            contest_id=contest_id,
-                           text=submission.get("text", ""),
+                           text=text_formatting.parse(submission.get("text", "")),
                            files=submission.get("files", []),
                            avg=submission.get("avg", "N/A"),
                            sum=submission.get("sum", "N/A"),

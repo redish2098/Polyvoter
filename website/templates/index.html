@@ -1,7 +1,5 @@
 <!DOCTYPE html>
 
-
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -16,27 +14,43 @@
 </nav>
 
 <main>  <h1>Polytopia Contests</h1>
-
     {% for contest in contests %}
     <section class="contest">
         <h2 class="contest-title">{{ contest["contest_name"] }} ({{ contest["year"] }})</h2>
         <div class="contest-container">
             {% for submission in contest["submissions"] %}
-            <a href="/submission/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ loop.index0 }}" class="submission-link" >
-                <article class="submission">  {% if submission["files"] %}
-                    <img src="/submissions/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ submission['files'][0] }}"
-                         alt="{{ submission['alt_text'] or 'Polytopia Submission' }}" loading="lazy"> {% endif %}
-
-                    <div class="submission-content">  <p>{{ submission["text"] }}</p>
-                        <div class="submission-meta">
-                            <span class="votes">Score: {{ submission['avg'] }}</span>
-                            {% if submission["author"] %}
-                            <span class="author">by {{ submission["author"] }}</span>
+            <article class="submission-container">
+                <a href="/submission/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ loop.index0 }}" class="submission-link" >
+                    <article class="submission">
+                        {% if submission["files"] %}
+                            {% set file = submission["files"][0] %}
+                            {% if file.endswith('.jpg') or file.endswith('.jpeg') or file.endswith('.png') or file.endswith('.gif') %}
+                                <img src= "/submissions/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ file }}"
+                                     alt="{{ submission['alt_text'] or 'Polytopia Submission' }}" loading="lazy">
+                            {% elif file.endswith('.mp4') or file.endswith('.webm')  or file.endswith('.mov')%}
+                                <video controls src="/submissions/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ file }}" loading="lazy"></video>
+                            {% elif file.endswith('.mp3') or file.endswith('.wav') %}
+                                <audio controls>
+                                    <source src="/submissions/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ file }}" type="audio/mpeg" loading="lazy">
+                                    Your browser does not support the audio element.
+                                </audio>
+                            {% else %}
+                                <a href="/submissions/{{ contest['year'] }}/{{ contest['contest_id'] }}/{{ file }}" target="_blank" loading="lazy">
+                                    View File
+                                </a>
                             {% endif %}
+                        {% endif %}
+                        <div class="submission-content">  <p>{{  submission["text"]  | safe }}</p>
+                            <div class="submission-meta">
+                                <span class="votes">Score: {{ submission['avg'] |round(2) }}</span>
+                                {% if submission["author"] %}
+                                <span class="author">by {{ submission["author"] }}</span>
+                                {% endif %}
+                            </div>
                         </div>
-                    </div>
-                </article>
-            </a>
+                    </article>
+                </a>
+            </article>
             {% endfor %}
         </div>
     </section>

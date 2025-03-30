@@ -31,7 +31,7 @@ class Leaderboard(commands.Cog):
                 message = await channel.fetch_message(k)
                 embed.add_field(
                     name=f"{pos}) {message.author.display_name}",
-                    value=f"Average: {v[0]}\nTotal: {v[1]}\nVotes: {v[2]}\n[Jump to submission]({message.jump_url})",
+                    value=f"Average: {v[0]:.3f}\nTotal: {v[1]}\nVotes: {v[2]}\n[Jump to submission]({message.jump_url})",
                     inline=False,
                 )
                 pos += 1

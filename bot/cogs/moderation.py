@@ -41,6 +41,7 @@ class Moderation(commands.Cog):
         votes = {}
         submissions = {} # {submission_id : {"attachments":[],"text":""}}
         async for message in channel.history(limit=200):
+            message : nextcord.Message
             if count != 0:
                 await response_message.edit(
                     embed=util.generic_embed(f"{count} submissions recounted", "Recounting Votes", nextcord.Color.orange()))
@@ -48,6 +49,8 @@ class Moderation(commands.Cog):
                 continue
             votes[message.id] = {}
             for reaction in message.reactions:
+                if reaction.emoji not in util.reaction_emojis:
+                    continue
                 async for user in reaction.users():
                     if user.bot:
                         continue

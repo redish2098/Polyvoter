@@ -56,13 +56,19 @@ main {
     justify-content: center;
 }
 
-.submission-link {
-    text-decoration: none;
+.submission-container{
     flex: 1 0 300px;
     max-width: 400px;
+    display: block;
+    pointer-events: auto;
 }
 
-/* Submission Styles (Common for both contest list and single submission view) */
+.submission-link {
+    text-decoration: none;
+}
+
+
+/* Submission Styles */
 .submission {
     border: 1px solid #ddd;
     background-color: white;
@@ -70,6 +76,7 @@ main {
     overflow: hidden;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    color: #222;
 }
 
 .submission:hover {
@@ -77,12 +84,31 @@ main {
     box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.15);
 }
 
+.submission-individual{
+    max-width: 60%;
+    max-height: 60%;
+}
+
+.submission-individual img,
 .submission img {
     width: 100%;
     max-height: 80vh;
     object-fit: contain;
     display: block;
 }
+
+.submission-individual video,
+.submission video {
+    width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    display: block;
+    margin: auto;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
 
 .placeholder {
     width: 100%;
@@ -112,16 +138,4 @@ main {
 
 .votes, .author {
     margin-right: 15px;
-}
-
-
-/* Single Submission View Styles */
-.submission-view {
-    display: flex;
-
-}
-
-.submission-container {
-    max-width: 800px;
-    padding: 20px;
 }

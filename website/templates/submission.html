@@ -1,5 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
+<style>
+    main {
+        display: flex;
+        justify-content: center;
+    }
+</style>
+
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,24 +22,36 @@
 </nav>
 
 <main>
-    <section class="submission-view">
-        <div class="submission-container">
-            {% if files %}
-            <img src="/submissions/{{ year }}/{{ contest_id }}/{{ files[0] }}" alt="{{ alt_text or 'Polytopia Submission' }}" loading="lazy">
+    <div class="submission-individual">
+        {% if files %}
+            {% set file = files[0] %}
+            {% if file.endswith('.jpg') or file.endswith('.jpeg') or file.endswith('.png') or file.endswith('.gif') %}
+                <img src="/submissions/{{ year }}/{{ contest_id }}/{{ file }}" loading="lazy">
+            {% elif file.endswith('.mp4') or file.endswith('.webm')  or file.endswith('.mov')%}
+                <video controls src="/submissions/{{ year }}/{{ contest_id }}/{{ file }}"></video>
+            {% elif file.endswith('.mp3') or file.endswith('.wav') %}
+                <audio controls>
+                    <source src="/submissions/{{ year }}/{{ contest_id }}/{{ file }}" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            {% else %}
+                <a href="/submissions/{{ year }}/{{ contest_id }}/{{ file }}" target="_blank">
+                    View File
+                </a>
             {% endif %}
-            <div class="submission-content">
-                <p>{{ text }}</p>
-                <div class="submission-meta">
-                    <span class="votes">Score: {{ avg }}</span>
-                    <span class="votes">Total: {{ sum }}</span>
-                    <span class="votes">Count: {{ count }}</span>
-                    {% if author %}
-                    <span class="author">by {{ author }}</span>
-                    {% endif %}
-                </div>
+        {% endif %}
+        <div class="submission-content">
+            <p>{{ text | safe }}</p>
+            <div class="submission-meta">
+                <span class="votes">Score: {{ avg | round(2) }} </span>
+                <span class="votes">Total: {{ sum }}</span>
+                <span class="votes">Count: {{ count }}</span>
+                {% if author %}
+                <span class="author">by {{ author }}</span>
+                {% endif %}
             </div>
         </div>
-    </section>
+    </div>
 </main>
 
 </body>
