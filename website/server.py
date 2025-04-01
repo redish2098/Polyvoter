@@ -4,26 +4,25 @@ import os
 import json
 from contests import contests
 from website import text_formatting
+from whitenoise import WhiteNoise
+from pathlib import Path
 
 CACHE = contests.InMemoryCache()
 
-app = Flask(__name__, static_folder="static", template_folder="templates")
+app = Flask(__name__, template_folder="templates")
 app.jinja_env.filters["md"] = text_formatting.parse
+
+app.wsgi_app = WhiteNoise(
+    app.wsgi_app,
+    root= Path("contests/submissions").absolute(),
+    prefix = "submissions/",
+    autorefresh=False,
+    max_age=31536000
+)
 
 @app.route("/")
 def home():
     return render_template("index.html", contests=CACHE.contests)
-
-
-@app.route("/submissions/<int:year>/<contest_id>/<filename>")
-def serve_image(year, contest_id, filename):
-    contest_path = os.path.join(contests.SUBMISSIONS_DIR, str(year), contest_id)
-    file_path = os.path.join(contest_path, filename)
-
-    if not os.path.exists(file_path):
-        return "File not found", 404
-
-    return send_from_directory(contest_path, filename)
 
 @app.route("/submission/<int:year>/<contest_id>/<submission_num>")
 def submission_page(year, contest_id, submission_num):

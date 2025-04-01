@@ -60,7 +60,6 @@ class InMemoryCache:
 
         for file in SUBMISSIONS_DIR.rglob("info.json"):
             file: Path = file.resolve()
-            print(f"Loading contest info from {file}")
             json_string = file.read_text()
             info = InfoFile.model_validate_json(json_string)
 

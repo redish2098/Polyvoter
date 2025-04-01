@@ -6,7 +6,7 @@ ALLOWED_TAGS = [
 ]
 
 ALLOWED_ATTRIBUTES = {
-    "iframe": ["src", "frameborder", "allowfullscreen"],
+    "iframe": ["src", "frameborder", "allowfullscreen","loading"],
 }
 
 def parse(text):
@@ -40,7 +40,7 @@ def embed_youtube_links(text):
         video_id = match.group(1)
         embed_url = f"https://www.youtube.com/embed/{video_id}"
         nonlocal iframe
-        iframe = f'<iframe src="{embed_url}" frameborder="0" allowfullscreen></iframe>'
+        iframe = f'<iframe src="{embed_url}" frameborder="0" allowfullscreen loading="lazy"></iframe>'
         return ""
 
     text = re.sub(youtube_regex, replace, text)

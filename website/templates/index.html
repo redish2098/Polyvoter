@@ -16,45 +16,80 @@
             <h1>Polytopia Contests</h1>
             {% for contest in contests %}
             <section class="contest">
-                <h2 class="contest-title">{{ contest.name }} ({{ contest.month }}-{{ contest.year }})</h2>
-                <div class="contest-container">
-                    {% for submission in contest.submissions %}
-                    <article class="submission-container">
-                        <a href="/submission/{{ contest.year }}/{{ contest.contest_id }}/{{ loop.index0 }}" class="submission-link" >
-                            <article class="submission">
-                                {% if submission.files %}
-                                    {% set file = contest.link(submission.files[0]) %}
-                                    {% if file.endswith('.jpg') or file.endswith('.jpeg') or file.endswith('.png') or file.endswith('.gif') or file.endswith(".webp") %}
-                                        <img src= "{{ file }}"
-                                             alt="{{ submission['alt_text'] or 'Polytopia Submission' }}" loading="lazy">
-                                    {% elif file.endswith('.mp4') or file.endswith('.webm')  or file.endswith('.mov')%}
-                                        <video controls src="{{ file }}" preload="metadata"></video>
-                                    {% elif file.endswith('.mp3') or file.endswith('.wav') %}
-                                        <audio controls preload="metadata">
-                                            <source src="{{ file }}" type="audio/mpeg">
-                                            Your browser does not support the audio element.
-                                        </audio>
-                                    {% else %}
-                                        <a href="{{ file }}" target="_blank">
-                                            View File
-                                        </a>
-                                    {% endif %}
-                                {% endif %}
-                                <div class="submission-content">  <p>{{  submission.text|md|safe }}</p>
-                                    <div class="submission-meta">
-                                        <span class="votes">Score: {{ submission.avg|round(2) }}</span>
-                                        {% if submission.author %}
-                                            <span class="author">by {{ submission.author }}</span>
+                <h2 class="contest-title">
+                    <button class="toggle-button" onclick="toggleSubmissions(this)">&#9654;</button>
+                    {{ contest.name }} ({{ contest.month }}-{{ contest.year }})
+                </h2>
+                <div class="contest-wrapper">
+                    <div class="contest-container hidden">
+                        {% for submission in contest.submissions %}
+                        <article class="submission-container">
+                            <a href="/submission/{{ contest.year }}/{{ contest.contest_id }}/{{ loop.index0 }}" class="submission-link" >
+                                <article class="submission">
+                                    {% if submission.files %}
+                                        {% set file = contest.link(submission.files[0]) %}
+                                        {% if file.endswith('.jpg') or file.endswith('.jpeg') or file.endswith('.png') or file.endswith('.gif') or file.endswith(".webp") %}
+                                            <img src= "{{ file }}"
+                                                 alt="{{ submission['alt_text'] or 'Polytopia Submission' }}" loading="lazy">
+                                        {% elif file.endswith('.mp4') or file.endswith('.webm')  or file.endswith('.mov')%}
+                                            <video controls src="{{ file }}" preload="metadata"></video>
+                                        {% elif file.endswith('.mp3') or file.endswith('.wav') %}
+                                            <audio controls preload="metadata">
+                                                <source src="{{ file }}" type="audio/mpeg">
+                                                Your browser does not support the audio element.
+                                            </audio>
+                                        {% else %}
+                                            <a href="{{ file }}" target="_blank">
+                                                View File
+                                            </a>
                                         {% endif %}
+                                    {% endif %}
+                                    <div class="submission-content">  <p>{{  submission.text|md|safe }}</p>
+                                        <div class="submission-meta">
+                                            <span class="votes">Score: {{ submission.avg|round(2) }}</span>
+                                            {% if submission.author %}
+                                                <span class="author">by {{ submission.author }}</span>
+                                            {% endif %}
+                                        </div>
                                     </div>
-                                </div>
-                            </article>
-                        </a>
-                    </article>
-                    {% endfor %}
+                                </article>
+                            </a>
+                        </article>
+                        {% endfor %}
+                    </div>
                 </div>
             </section>
             {% endfor %}
         </main>
+
+        <script>
+        function toggleSubmissions(button) {
+            const wrapper = button.closest('.contest').querySelector('.contest-wrapper');
+            const isOpen = wrapper.classList.contains('open');
+
+            if (isOpen) {
+                wrapper.style.maxHeight = wrapper.scrollHeight + "px";
+                requestAnimationFrame(() => {
+                    wrapper.style.maxHeight = "0px";
+                });
+
+                wrapper.classList.remove('open');
+                button.innerHTML = '&#9654;'; // ▶
+            } else {
+                wrapper.style.maxHeight = wrapper.scrollHeight + "px";
+                wrapper.classList.add('open');
+                button.innerHTML = '&#9660;'; // ▼
+
+                wrapper.addEventListener('transitionend', function clearMaxHeight(e) {
+                    if (e.propertyName === 'max-height') {
+                        wrapper.style.maxHeight = 'none';
+                        wrapper.removeEventListener('transitionend', clearMaxHeight);
+                    }
+                });
+            }
+        }
+
+        </script>
+
     </body>
 </html>
