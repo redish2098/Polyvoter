@@ -40,6 +40,10 @@ class Moderation(commands.Cog):
         channel = await self.bot.fetch_channel(settings.get_setting(settings.Settings.CHANNEL).get())
         votes = {}
         submissions = {} # {submission_id : {"attachments":[],"text":""}}
+
+        ignored_users = []
+        accepted_users = []
+
         async for message in channel.history(limit=200):
             message : nextcord.Message
             if count != 0:
@@ -48,19 +52,41 @@ class Moderation(commands.Cog):
             if message.author.bot:
                 continue
             votes[message.id] = {}
+
             for reaction in message.reactions:
                 if reaction.emoji not in util.reaction_emojis:
                     continue
                 async for user in reaction.users():
-                    if user.bot:
+                    if user.id in ignored_users:
                         continue
+                    elif user.id not in accepted_users:
+                        guild = await self.bot.fetch_guild(interaction.guild_id)
+                        try:
+                            member = await guild.fetch_member(user.id)
+                        except nextcord.NotFound:
+                            print(f"ignoring user {user.name}:{user.id} (no longer a member)")
+                            ignored_users.append(user.id)
+                            continue
+                        if user.bot:
+                            print(f"ignoring user {user.name}:{user.id} (bot)")
+                            ignored_users.append(user.id)
+                            continue
+                        if not util.can_vote(member):
+                            print(f"ignoring user {user.name}:{user.id} (too low level)")
+                            ignored_users.append(user.id)
+                            continue
+
                     contest_lifecycle.set_vote(user.id, message.id, util.reaction_emojis[reaction.emoji])
+                    accepted_users.append(user.id)
 
             submissions[message.id] = {}
             submissions[message.id]["attachments"] = message.attachments
             submissions[message.id]["text"] = message.content
             submissions[message.id]["author"] = message.author.name
             count += 1
+
+        for user in ignored_users:
+            print(f"{user} was ignored")
 
         await response_message.edit(embed=util.generic_embed(f"sum,avg and total for leaderboard is being recounted", "Recounting leaderboard", nextcord.Color.orange()))
         await self.bot.leaderboard.count_leaderboard()

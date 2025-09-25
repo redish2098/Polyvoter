@@ -4,6 +4,7 @@ from bot.settings import Settings,get_setting
 from bot import util
 from bot.database import contest_lifecycle
 import logging
+import nextcord.utils
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,9 @@ class Voting(commands.Cog):
 
         channel = await self.bot.fetch_channel(reaction_event.channel_id)
         message = await channel.fetch_message(reaction_event.message_id)
-        if not get_setting(Settings.VOTING).get():
+        guild = await self.bot.fetch_guild(reaction_event.guild_id)
+        member = await guild.fetch_member(reaction_event.user_id)
+        if not get_setting(Settings.VOTING).get() or not util.can_vote(member):
             await message.remove_reaction(reaction_event.emoji, reaction_event.member)
             return
 
@@ -31,7 +34,6 @@ class Voting(commands.Cog):
                 if reaction_event.emoji.name == emoji:
                     continue
                 await message.remove_reaction(emoji, reaction_event.member)
-
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, reaction_event: nextcord.RawReactionActionEvent):

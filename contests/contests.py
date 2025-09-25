@@ -3,6 +3,8 @@ import json
 import os
 from pathlib import Path
 import time
+from typing import List, Callable
+
 import nextcord
 import nanoid
 from pydantic import BaseModel, Field
@@ -48,7 +50,6 @@ class Contest:
             return f"/submissions/{self.year}/{self.contest_id}/{webp.name}"
         return f"/submissions/{self.year}/{self.contest_id}/{file}"
 
-
 class InMemoryCache:
     def __init__(self):
         self._contests = []
@@ -83,8 +84,8 @@ class InMemoryCache:
 
 
 async def save_contest(name: str, submissions: dict[int, dict[nextcord.Attachment, str, str, float, int, int]]): # {submission_id:{"attachments":[],"text":"","avg":0,"sum":0,"count":0}}
-    contest_info = {'name': name, 'submissions': [], 'date':datetime.now().date().isoformat()}
-    year = datetime.now().year
+    contest_info = {'contest name': name, 'submissions': [], 'date':datetime.datetime.now().date().isoformat()}
+    year = datetime.datetime.now().year
 
     save_dir = f"{SUBMISSIONS_DIR}/{year}/{nanoid.generate(size=7)}"
     while os.path.exists(save_dir):
@@ -106,16 +107,16 @@ async def save_contest(name: str, submissions: dict[int, dict[nextcord.Attachmen
             "files": []
         }
 
-
-        for i,attachment in enumerate(submission["attachments"]):
+        i = 0
+        for attachment in submission["attachments"]:
             filepath = Path(save_dir) / f"file_{i}_{attachment.filename}"
             await attachment.save(filepath)
             file_formatting.format_file(filepath)
             submission_r["files"].append(filepath.name)
+            i+=1
 
         contest_info['submissions'].append(submission_r)
 
-    print(os.path.abspath(f"{save_dir}/info.json"))
     with open(f"{save_dir}/info.json", "w") as info_file:
         info_file.write(json.dumps(contest_info, indent=4))
 

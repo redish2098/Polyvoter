@@ -3,3 +3,4 @@ settings.json
 data.db
 __pycache__/
 contests/submissions/*
+.venv/

@@ -5,5 +5,5 @@ def format_file(filepath):
             filepath.name.endswith(".jpeg") or
             filepath.name.endswith(".png")):
         webp = filepath.with_suffix(".webp")
-        img = Image.open(filepath.name)
+        img = Image.open(filepath)
         img.save(webp, "webp", optimize=True, quality=100, method=6)

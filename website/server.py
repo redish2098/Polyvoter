@@ -1,24 +1,30 @@
+import datetime
 import random
 from flask import Flask, render_template, send_from_directory, redirect, url_for
 import os
 import json
+
+from bot.cogs.submissions import Submissions
 from contests import contests
+from contests.contests import Contest
 from website import text_formatting
 from whitenoise import WhiteNoise
 from pathlib import Path
+from flask_compress import Compress
 
 CACHE = contests.InMemoryCache()
 
-app = Flask(__name__, template_folder="templates")
+app = Flask(__name__,template_folder="templates")
+Compress(app)
 app.jinja_env.filters["md"] = text_formatting.parse
-
 app.wsgi_app = WhiteNoise(
     app.wsgi_app,
     root= Path("contests/submissions").absolute(),
     prefix = "submissions/",
-    autorefresh=False,
+    autorefresh=True,
     max_age=31536000
 )
+
 
 @app.route("/")
 def home():
@@ -38,13 +44,19 @@ def submission_page(year, contest_id, submission_num):
 
     submission = contest_data["submissions"][int(submission_num)]
 
+    contest = Contest(
+        contest_id=contest_id,
+        name=contest_data["contest name"],
+        year=str(year),
+        date= datetime.date.fromisoformat(contest_data["date"]),
+        submissions=[]
+    )
 
     if not submission:
         return "Submission not found", 404
 
     return render_template("submission.html",
-                           year=year,
-                           contest_id=contest_id,
+                           contest=contest,
                            text=submission.get("text", ""),
                            files=submission.get("files", []),
                            avg=submission.get("avg", "N/A"),
@@ -56,7 +68,6 @@ def submission_page(year, contest_id, submission_num):
 @app.route("/random_submission")
 def random_image():
     all_contests = []
-
     for year in os.listdir(contests.SUBMISSIONS_DIR):
         year_path = os.path.join(contests.SUBMISSIONS_DIR, year)
         if os.path.isdir(year_path):

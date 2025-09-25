@@ -52,7 +52,6 @@ main {
 .contest-wrapper {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.4s ease;
 }
 
 .contest-container {
@@ -82,7 +81,6 @@ main {
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
     color: #222;
 }
 
@@ -147,12 +145,20 @@ main {
     margin-right: 15px;
 }
 
-.toggle-button {
-    background: none;
-    border: none;
-    font-size: 1.2em;
+.contest-details summary {
     cursor: pointer;
-    margin-right: 8px;
-    vertical-align: middle;
+    font-size: 1.25rem;
+    font-weight: bold;
+    list-style: none;
+}
+
+.contest-details summary::before {
+    content: "▶";
+    margin-right: 0.5rem;
+    transition: transform 0.2s ease;
+}
+
+.contest-details[open] summary::before {
+    content: "▼";
 }
 
