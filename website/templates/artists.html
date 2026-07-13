@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Polytopia Artists</h1>
+{% for artist in artists %}
+<section class="contest">
+    <details class="contest-details">
+        <summary class="contest-title">
+            {{ artist.author }}
+            — Avg: {{ artist.total_avg|round(2) }}
+            — Total Score: {{ artist.total_sum }}
+            — Submissions: {{ artist.count }}
+        </summary>
+        <div class="contest-container">
+            {% for submission in artist.submissions %}
+            <article class="submission-container">
+                <a href="/submission/{{ submission.id }}" class="submission-link">
+                    <article class="submission">
+                        {% if submission.attachments %}
+                            {% set attachment = submission.attachments[0] %}
+                            {% set compressed = attachment.get_variant("thumbnail") %}
+                            {% set file = (compressed if compressed else attachment).filename %}
+                            {% if file.endswith('.jpg') or file.endswith('.jpeg') or file.endswith('.png') or file.endswith('.gif') or file.endswith(".webp") %}
+                                <img src="\{{ file }}" loading="lazy">
+                            {% elif file.endswith('.mp4') or file.endswith('.webm') or file.endswith('.mov') %}
+                                <video controls src="\{{ file }}" preload="metadata"></video>
+                            {% elif file.endswith('.mp3') or file.endswith('.wav') %}
+                                <audio controls preload="metadata">
+                                    <source src="\{{ file }}" type="audio/mpeg">
+                                    Your browser does not support the audio element.
+                                </audio>
+                            {% else %}
+                                <a href="\{{ file }}" target="_blank">View File</a>
+                            {% endif %}
+                        {% endif %}
+                        <div class="submission-content">
+                            <p>{{ submission.text|md|safe }}</p>
+                            <div class="submission-meta">
+                                <span class="votes">Score: {{ submission.avg|round(2) }}</span>
+                                {% if submission.contest %}
+                                    <span class="contest-name">{{ submission.contest.name }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </article>
+                </a>
+            </article>
+            {% endfor %}
+        </div>
+    </details>
+</section>
+{% endfor %}
+{% endblock %}

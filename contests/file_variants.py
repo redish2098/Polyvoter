@@ -22,6 +22,7 @@ def create_compressed_variant(session, attachment : Attachments, images_dir : Pa
             filepath.name.endswith(".png")
     ):
         webp_filename = filepath.with_suffix(".webp")
+        webp_filename = filepath.with_name(filepath.stem + 'compressed' + webp_filename.suffix)
         img = Image.open(images_dir / filepath)
         img.save(images_dir / webp_filename, "webp", optimize=True, quality=80, method=6, save_all=True)
 
@@ -38,8 +39,10 @@ def create_thumbnail_variant(session, attachment : Attachments, images_dir : Pat
             filepath.name.endswith(".png")
     ):
         webp_filename = filepath.with_suffix(".webp")
+        webp_filename = filepath.with_name(filepath.stem + 'thumb' + webp_filename.suffix)
         img = Image.open(images_dir / filepath)
-        img.save(images_dir / webp_filename, "webp", optimize=True, quality=40, method=6, save_all=True)
+        img = img.resize((img.width // 2, img.height // 2))
+        img.save(images_dir / webp_filename, "webp", optimize=True, quality=20, method=6, save_all=True)
 
         session.add(AttachmentVariants(
             attachment_id=attachment.id,
