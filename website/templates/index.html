@@ -15,7 +15,7 @@
                     <article class="submission">
                         {% if submission.attachments %}
                             {% set attachment = submission.attachments[0] %}
-                            {% set compressed = attachment.get_variant("compressed") %}
+                            {% set compressed = attachment.get_variant("thumbnail") %}
                             {% set file = (compressed if compressed else attachment).filename %}
                             {% if file.endswith('.jpg') or file.endswith('.jpeg') or file.endswith('.png') or file.endswith('.gif') or file.endswith(".webp") %}
                                 <img src="\{{ file }}" loading="lazy">

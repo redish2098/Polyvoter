@@ -11,7 +11,7 @@
 
 {% block content %}
 <h1 class="contest-title">
-    {{ submission.contest.name }} ({{ submission.contest.date.month }}-{{ submission.contest.date.year }})
+    {{ submission.contest.name }} ({{ submission.contest.date.strftime("%B-%y") }})
 </h1>
 <div class="submission-individual">
     {% if submission.attachments %}
