@@ -3,6 +3,7 @@ import json
 import asyncio
 from contests import contests, contest_database
 import shutil
+import nanoid
 
 os.chdir('../contests')
 
@@ -34,6 +35,10 @@ async def import_legacy_contests():
             for filename in submissions[i]["filenames"]:
                 new_path = contests.IMAGES_DIR / filename
                 old_path = contest_folder / filename
+
+                while new_path.exists():
+                    new_path = contests.IMAGES_DIR / f"{new_path.stem}{nanoid.generate(size=6)}{new_path.suffix}"
+
                 shutil.copy(old_path, new_path)
                 new_files.append(new_path)
 

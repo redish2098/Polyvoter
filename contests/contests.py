@@ -1,6 +1,7 @@
 import datetime
 from pathlib import Path
 from . import contest_database,file_variants
+import nanoid
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 SUBMISSIONS_DIR = SCRIPT_DIR / "submissions"
@@ -47,7 +48,10 @@ async def save_contest(name: str, submissions, contest_date):
             else:
                 for i, attachment in enumerate(submission["attachments"]):
 
-                    filepath = Path(IMAGES_DIR) / f"file_{i}_{attachment.filename}"
+                    filepath = Path(IMAGES_DIR) / f"{attachment.filename}"
+                    while filepath.exists():
+                        filepath = Path(IMAGES_DIR) / f"{filepath.stem}{nanoid.generate(size=6)}{filepath.suffix}"
+
                     await attachment.save(filepath)
 
                     attachment_row = contest_database.Attachments(
