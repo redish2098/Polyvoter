@@ -9,14 +9,14 @@ class FileVariants(enum.Enum):
     THUMBNAIL = "thumbnail"
     COMPRESSED = "compressed"
 
-def create_file_variants(session, attachment : Attachments):
+def create_file_variants(session, attachment : Attachments, images_dir : Path):
     if not attachment.get_variant(FileVariants.COMPRESSED.value):
-        create_compressed_variant(session, attachment)
+        create_compressed_variant(session, attachment, images_dir)
     if not attachment.get_variant(FileVariants.THUMBNAIL.value):
-        create_thumbnail_variant(session, attachment)
+        create_thumbnail_variant(session, attachment, images_dir)
 
-def create_compressed_variant(session, attachment : Attachments):
-    filepath = Path(attachment.filename)
+def create_compressed_variant(session, attachment : Attachments, images_dir : Path):
+    filepath = images_dir / Path(attachment.filename)
     if (filepath.name.endswith(".jpg") or
             filepath.name.endswith(".jpeg") or
             filepath.name.endswith(".png")
@@ -31,8 +31,8 @@ def create_compressed_variant(session, attachment : Attachments):
             filename=str(webp_filename),
         ))
 
-def create_thumbnail_variant(session, attachment : Attachments):
-    filepath = Path(attachment.filename)
+def create_thumbnail_variant(session, attachment : Attachments, images_dir : Path):
+    filepath = images_dir / Path(attachment.filename)
     if (filepath.name.endswith(".jpg") or
             filepath.name.endswith(".jpeg") or
             filepath.name.endswith(".png")

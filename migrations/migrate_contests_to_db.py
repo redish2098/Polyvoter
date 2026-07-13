@@ -1,11 +1,16 @@
-import os
 import json
 import asyncio
-from contests import contests, contest_database
 import shutil
 import nanoid
+from pathlib import Path
+import sys
 
-os.chdir('../contests')
+current_file = Path(__file__).resolve()
+parent_directory = current_file.parent.parent
+sys.path.append(str(parent_directory))
+
+from contests import contests
+
 
 async def import_legacy_contests():
     imported = 0

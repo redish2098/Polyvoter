@@ -44,7 +44,7 @@ async def save_contest(name: str, submissions, contest_date):
 
                     session.add(attachment_row)
                     session.flush()
-                    file_variants.create_file_variants(session, attachment_row)
+                    file_variants.create_file_variants(session, attachment_row, SCRIPT_DIR)
             else:
                 for i, attachment in enumerate(submission["attachments"]):
 
@@ -61,4 +61,4 @@ async def save_contest(name: str, submissions, contest_date):
 
                     session.add(attachment_row)
                     session.flush()
-                    file_variants.create_file_variants(session, attachment_row)
+                    file_variants.create_file_variants(session, attachment_row, SCRIPT_DIR)
