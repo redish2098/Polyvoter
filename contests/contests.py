@@ -1,125 +1,60 @@
 import datetime
-import json
-import os
 from pathlib import Path
-import time
-from typing import List, Callable
+from . import contest_database,file_variants
 
-import nextcord
-import nanoid
-from pydantic import BaseModel, Field
-import dataclasses
-from contests import file_formatting
-
-SUBMISSIONS_DIR = Path("contests/submissions").resolve()
+SCRIPT_DIR = Path(__file__).resolve().parent
+SUBMISSIONS_DIR = SCRIPT_DIR / "submissions"
+IMAGES_DIR = SUBMISSIONS_DIR / "attachments"
 LAST_UPDATED_FILE = SUBMISSIONS_DIR / "last_updated"
 
+SUBMISSIONS_DIR.mkdir(parents=True, exist_ok=True)
+IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 
-class Submission(BaseModel):
-    author: str
-    text: str
-    avg: float
-    sum: int
-    count: int
-    files: list[str]
+# submissions structure:  {submission_id:{"attachments":[],"text":"","avg":0,"sum":0,"count":0}}
+async def save_contest(name: str, submissions, contest_date):
+    if contest_date is None:
+        contest_date = datetime.date.today()
+    IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+    with contest_database.get_session() as session:
+        contest = contest_database.Contests(name=name, year=contest_date.year, date=contest_date)
+        session.add(contest)
+        session.flush()
 
+        for submission in submissions.values():
+            submission_row = contest_database.Submissions(
+                contest_id=contest.id,
+                author=submission["author"],
+                text=submission["text"],
+                avg=submission["avg"],
+                sum=submission["sum"],
+                count=submission["count"],
+            )
 
-class InfoFile(BaseModel):
-    name: str = Field(alias="contest name")
-    submissions: list[Submission]
-    date: datetime.date
+            session.add(submission_row)
+            session.flush()
 
+            file_links = submission.get("filenames") # file links for non nextcord attachments
+            if file_links is not None:
+                for file_link in file_links:
+                    attachment_row = contest_database.Attachments(
+                        submission_id=submission_row.id,
+                        filename= str(Path(file_link).relative_to(SUBMISSIONS_DIR.parent)),
+                    )
 
-@dataclasses.dataclass
-class Contest:
-    contest_id: str
-    name: str
-    year: str
-    date: datetime.date
-    submissions: list[Submission]
+                    session.add(attachment_row)
+                    session.flush()
+                    file_variants.create_file_variants(session, attachment_row)
+            else:
+                for i, attachment in enumerate(submission["attachments"]):
 
-    @property
-    def month(self) -> str:
-        return self.date.strftime("%B")
+                    filepath = Path(IMAGES_DIR) / f"file_{i}_{attachment.filename}"
+                    await attachment.save(filepath)
 
-    def link(self, file: str) -> str:
-        path = SUBMISSIONS_DIR / self.year / self.contest_id / file
-        webp = path.with_suffix(".webp")
+                    attachment_row = contest_database.Attachments(
+                        submission_id=submission_row.id,
+                        filename=attachment.filename,
+                    )
 
-        if webp.is_file():
-            return f"/submissions/{self.year}/{self.contest_id}/{webp.name}"
-        return f"/submissions/{self.year}/{self.contest_id}/{file}"
-
-class InMemoryCache:
-    def __init__(self):
-        self._contests = []
-        self.load_from_disk()
-        self.mtime = time.time()
-
-    def load_from_disk(self):
-        self._contests = []
-
-        for file in SUBMISSIONS_DIR.rglob("info.json"):
-            file: Path = file.resolve()
-            json_string = file.read_text()
-            info = InfoFile.model_validate_json(json_string)
-
-            self._contests.append(Contest(
-                contest_id=file.parent.name,
-                name=info.name,
-                year=file.parent.parent.name,
-                date=info.date,
-                submissions=info.submissions,
-            ))
-
-        self._contests.sort(key=lambda c: c.date, reverse=True)
-
-    @property
-    def contests(self):
-        if LAST_UPDATED_FILE.stat().st_mtime > self.mtime:
-            self.load_from_disk()
-            self.mtime = time.time()
-
-        return self._contests
-
-
-async def save_contest(name: str, submissions: dict[int, dict[nextcord.Attachment, str, str, float, int, int]]): # {submission_id:{"attachments":[],"text":"","avg":0,"sum":0,"count":0}}
-    contest_info = {'contest name': name, 'submissions': [], 'date':datetime.datetime.now().date().isoformat()}
-    year = datetime.datetime.now().year
-
-    save_dir = f"{SUBMISSIONS_DIR}/{year}/{nanoid.generate(size=7)}"
-    while os.path.exists(save_dir):
-        save_dir = f"{SUBMISSIONS_DIR}/{year}/{nanoid.generate(size=7)}"
-
-    if not os.path.exists(SUBMISSIONS_DIR):
-        os.mkdir(SUBMISSIONS_DIR)
-    if not os.path.exists(os.path.join(SUBMISSIONS_DIR, f"{year}")):
-        os.mkdir(os.path.join(SUBMISSIONS_DIR, f"{year}"))
-    os.mkdir(save_dir)
-
-    for submission in submissions.values():
-        submission_r = {
-            "author": submission["author"],
-            "text": submission["text"],
-            "avg": submission["avg"],
-            "sum": submission["sum"],
-            "count": submission["count"],
-            "files": []
-        }
-
-        i = 0
-        for attachment in submission["attachments"]:
-            filepath = Path(save_dir) / f"file_{i}_{attachment.filename}"
-            await attachment.save(filepath)
-            file_formatting.format_file(filepath)
-            submission_r["files"].append(filepath.name)
-            i+=1
-
-        contest_info['submissions'].append(submission_r)
-
-    with open(f"{save_dir}/info.json", "w") as info_file:
-        info_file.write(json.dumps(contest_info, indent=4))
-
-        if not Path(LAST_UPDATED_FILE).exists():
-            with open(LAST_UPDATED_FILE,"w"): pass
-        Path(LAST_UPDATED_FILE).touch()
+                    session.add(attachment_row)
+                    session.flush()
+                    file_variants.create_file_variants(session, attachment_row)

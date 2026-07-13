@@ -6,26 +6,28 @@
 <section class="contest">
     <details class="contest-details">
         <summary class="contest-title">
-            {{ contest.name }} ({{ contest.month }}-{{ contest.year }})
+            {{ contest.name }} ({{ contest.date.strftime("%B-%y") }})
         </summary>
         <div class="contest-container">
             {% for submission in contest.submissions %}
             <article class="submission-container">
-                <a href="/submission/{{ contest.year }}/{{ contest.contest_id }}/{{ loop.index0 }}" class="submission-link">
+                <a href="/submission/{{ submission.id }}" class="submission-link">
                     <article class="submission">
-                        {% if submission.files %}
-                            {% set file = contest.link(submission.files[0]) %}
+                        {% if submission.attachments %}
+                            {% set attachment = submission.attachments[0] %}
+                            {% set compressed = attachment.get_variant("compressed") %}
+                            {% set file = (compressed if compressed else attachment).filename %}
                             {% if file.endswith('.jpg') or file.endswith('.jpeg') or file.endswith('.png') or file.endswith('.gif') or file.endswith(".webp") %}
-                                <img src="{{ file }}" loading="lazy">
+                                <img src="\{{ file }}" loading="lazy">
                             {% elif file.endswith('.mp4') or file.endswith('.webm')  or file.endswith('.mov') %}
-                                <video controls src="{{ file }}" preload="metadata"></video>
+                                <video controls src="\{{ file }}" preload="metadata"></video>
                             {% elif file.endswith('.mp3') or file.endswith('.wav') %}
                                 <audio controls preload="metadata">
-                                    <source src="{{ file }}" type="audio/mpeg">
+                                    <source src="\{{ file }}" type="audio/mpeg">
                                     Your browser does not support the audio element.
                                 </audio>
                             {% else %}
-                                <a href="{{ file }}" target="_blank">View File</a>
+                                <a href="\{{ file }}" target="_blank">View File</a>
                             {% endif %}
                         {% endif %}
                         <div class="submission-content">
