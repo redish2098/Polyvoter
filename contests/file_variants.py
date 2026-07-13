@@ -16,14 +16,14 @@ def create_file_variants(session, attachment : Attachments, images_dir : Path):
         create_thumbnail_variant(session, attachment, images_dir)
 
 def create_compressed_variant(session, attachment : Attachments, images_dir : Path):
-    filepath = images_dir / Path(attachment.filename)
+    filepath = Path(attachment.filename)
     if (filepath.name.endswith(".jpg") or
             filepath.name.endswith(".jpeg") or
             filepath.name.endswith(".png")
     ):
         webp_filename = filepath.with_suffix(".webp")
-        img = Image.open(filepath)
-        img.save(webp_filename, "webp", optimize=True, quality=80, method=6, save_all=True)
+        img = Image.open(images_dir / filepath)
+        img.save(images_dir / webp_filename, "webp", optimize=True, quality=80, method=6, save_all=True)
 
         session.add(AttachmentVariants(
             attachment_id=attachment.id,
@@ -32,14 +32,14 @@ def create_compressed_variant(session, attachment : Attachments, images_dir : Pa
         ))
 
 def create_thumbnail_variant(session, attachment : Attachments, images_dir : Path):
-    filepath = images_dir / Path(attachment.filename)
+    filepath = Path(attachment.filename)
     if (filepath.name.endswith(".jpg") or
             filepath.name.endswith(".jpeg") or
             filepath.name.endswith(".png")
     ):
         webp_filename = filepath.with_suffix(".webp")
-        img = Image.open(filepath)
-        img.save(webp_filename, "webp", optimize=True, quality=40, method=6, save_all=True)
+        img = Image.open(images_dir / filepath)
+        img.save(images_dir / webp_filename, "webp", optimize=True, quality=40, method=6, save_all=True)
 
         session.add(AttachmentVariants(
             attachment_id=attachment.id,
