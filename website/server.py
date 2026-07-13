@@ -1,6 +1,5 @@
 from flask import Flask, render_template, send_from_directory, redirect, url_for
 import os
-
 from contests import  contest_database
 from contests.contest_database import Submissions, Contests, Attachments, get_session
 from website import text_formatting
@@ -8,6 +7,7 @@ from whitenoise import WhiteNoise
 from pathlib import Path
 from flask_compress import Compress
 from sqlalchemy.sql import func
+from sqlalchemy import desc
 
 app = Flask(__name__,template_folder="templates")
 contest_database.init_app(app)
@@ -24,7 +24,7 @@ app.wsgi_app = WhiteNoise(
 @app.route("/")
 def home():
     with get_session() as session:
-        contests = session.query(Contests).all()
+        contests = session.query(Contests).order_by(desc(Contests.date)).all()
         return render_template("index.html",contests=contests)
 
 @app.route("/submission/<int:submission_id>")
